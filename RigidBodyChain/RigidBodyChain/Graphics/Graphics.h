@@ -31,39 +31,20 @@ public:
 	Simulation* simulation;
 	GuiData* guiData;
 
-	void UpdateFrameMesh();
-	void UpdateJellyMesh();
 private:
 	bool InitializeDirectX(HWND hwnd);
 	bool InitializeShaders();
-	bool InitializeScene();
-	void GetFrame(Vector3 lb, Vector3 ub, vector<VertexP>& vertices, vector<int>& indices);
-	void InitBox();
-	void InitFrame();
-	void InitJelly();
-	void InitJellySides();
-	void InitConstantBuffers();
-	void InitUAV();
-	void InitDeformation();
-	void UpdateDeformationTexture();
-	void UpdateJellySides();
 
-	void InitModel();
-	void RenderModel();
 
 	void InitGui(HWND hwnd);
 	void RendeGui();
 	void RenderMainPanel();
 	void RenderVisualisation();
-	void RenderFrame(VertexBuffer<VertexP>& vb, IndexBuffer& ib, Vector4 color, Matrix matrix);
-	void RenderShading();
 
-	ComPtr<ID3D11Texture3D> tex3D;
-	ComPtr<ID3D11ShaderResourceView> texSRV;
+	//ComPtr<ID3D11Texture3D> tex3D;
+	//ComPtr<ID3D11ShaderResourceView> texSRV;
 	ComPtr<ID3D11SamplerState> sampler;
 
-	ComPtr<ID3D11Buffer> uav_buffer;
-	ComPtr<ID3D11UnorderedAccessView> uav_view;
 
 	ComPtr<ID3D11Device> device;
 	ComPtr<ID3D11DeviceContext> deviceContext;
@@ -77,11 +58,11 @@ private:
 	ConstantBuffer<ColoredObjectBuffer> cbColoredObject;
 	ConstantBuffer<LightBuffer> cbLight;
 
-	VertexBuffer<VertexPT3>  vbModel;
-	VertexBuffer<VertexP> vbBox, vbJelly, vbFrame;
-	IndexBuffer ibBox, ibJelly, ibFrame, ibModel;
-	VertexBuffer<VertexPT> vbJellySides[6];
-	IndexBuffer ibJellySides;
+	//VertexBuffer<VertexPT3>  vbModel;
+	//VertexBuffer<VertexP> vbBox, vbJelly, vbFrame;
+	//IndexBuffer ibBox, ibJelly, ibFrame, ibModel;
+	//VertexBuffer<VertexPT> vbJellySides[6];
+	//IndexBuffer ibJellySides;
 
 	ComPtr<ID3D11DepthStencilView> depthStencilView;
 	ComPtr<ID3D11Texture2D> depthStencilBuffer;
