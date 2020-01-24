@@ -41,8 +41,8 @@ private:
 	void RenderMainPanel();
 	void RenderVisualisation();
 
-	//ComPtr<ID3D11Texture3D> tex3D;
-	//ComPtr<ID3D11ShaderResourceView> texSRV;
+	bool InitializeScene();
+
 	ComPtr<ID3D11SamplerState> sampler;
 
 
@@ -55,14 +55,10 @@ private:
 	PixelShader pixelshader, pureColorPixelshader;
 	GeometryShader normalsShader;
 
+	Vector3 pos;
 	ConstantBuffer<ColoredObjectBuffer> cbColoredObject;
-	ConstantBuffer<LightBuffer> cbLight;
-
-	//VertexBuffer<VertexPT3>  vbModel;
-	//VertexBuffer<VertexP> vbBox, vbJelly, vbFrame;
-	//IndexBuffer ibBox, ibJelly, ibFrame, ibModel;
-	//VertexBuffer<VertexPT> vbJellySides[6];
-	//IndexBuffer ibJellySides;
+	VertexBuffer<VertexPN>  vbCube, vbGround;
+	IndexBuffer ibCube, ibGround;
 
 	ComPtr<ID3D11DepthStencilView> depthStencilView;
 	ComPtr<ID3D11Texture2D> depthStencilBuffer;

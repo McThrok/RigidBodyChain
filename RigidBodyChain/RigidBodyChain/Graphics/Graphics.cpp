@@ -12,6 +12,9 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 	if (!InitializeShaders())
 		return false;
 
+	if (!InitializeScene())
+		return false;
+
 	InitGui(hwnd);
 
 	return true;
@@ -69,27 +72,11 @@ void Graphics::RenderMainPanel() {
 		simulation->Reset();
 	}
 
-	ImGui::SliderFloat("delta time", &simulation->delta_time, 0.0005f, 0.05f, "%.4f");
-
 
 	ImGui::Separator();
 	ImGui::SliderFloat("simulation speed", &simulation->simulationSpeed, 0.1, 10);
 
 	ImGui::End();
-}
-void Graphics::RenderVisualisation()
-{
-	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
-	//this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	this->deviceContext->RSSetState(this->rasterizerState.Get());
-	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
-	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
-	this->deviceContext->PSSetShader(pureColorPixelshader.GetShader(), NULL, 0);
-
-	this->deviceContext->VSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
-	this->deviceContext->PSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
-
 }
 
 bool Graphics::InitializeDirectX(HWND hwnd)
@@ -236,11 +223,124 @@ bool Graphics::InitializeShaders()
 {
 	wstring root = L"";
 
-	if (!vertexshader.Initialize(this->device, root + L"my_vs.cso", VertexP::layout, ARRAYSIZE(VertexP::layout))) return false;
+	if (!vertexshader.Initialize(this->device, root + L"my_vs.cso", VertexPN::layout, ARRAYSIZE(VertexPN::layout))) return false;
 	if (!pixelshader.Initialize(this->device, root + L"my_ps.cso")) return false;
-	if (!pureColorPixelshader.Initialize(this->device, root + L"pureColor_ps.cso")) return false;
-	if (!normalsShader.Initialize(this->device, root + L"normals_gs.cso")) return false;
-	if (!deformationShader.Initialize(this->device, root + L"deformation_vs.cso", VertexPT3::layout, ARRAYSIZE(VertexPT3::layout))) return false;
 
 	return true;
+}
+
+bool Graphics::InitializeScene()
+{
+	VertexPN v[] = {
+		VertexPN(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f),
+		VertexPN(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f),
+		VertexPN(1.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f),
+		VertexPN(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f),
+
+		VertexPN(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f),
+		VertexPN(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f),
+		VertexPN(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f),
+		VertexPN(1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f),
+
+		VertexPN(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f),
+		VertexPN(1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f),
+		VertexPN(1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f),
+		VertexPN(1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f),
+
+		VertexPN(0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f),
+		VertexPN(0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f),
+		VertexPN(0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f),
+		VertexPN(0.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f),
+
+		VertexPN(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f),
+		VertexPN(1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f),
+		VertexPN(1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f),
+		VertexPN(0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f),
+
+		VertexPN(0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f),
+		VertexPN(1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f),
+		VertexPN(1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f),
+		VertexPN(0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f)
+	};
+
+	int indices[] =
+	{
+		0, 2, 3, 0,1, 2,
+		4, 6, 7, 4,5, 6,
+		8, 10, 11, 8, 9, 10,
+		12, 14, 15, 12, 13, 14,
+		16, 18, 19, 16, 17, 18,
+		20, 22, 23, 20, 21, 22,
+	};
+
+
+	HRESULT hr = this->vbCube.Initialize(this->device.Get(), v, ARRAYSIZE(v));
+	if (FAILED(hr))
+	{
+		ErrorLogger::Log(hr, "Failed to create vertex buffer.");
+		return false;
+	}
+
+	hr = this->ibCube.Initialize(this->device.Get(), indices, ARRAYSIZE(indices));
+	if (FAILED(hr))
+	{
+		ErrorLogger::Log(hr, "Failed to create indices buffer.");
+		return hr;
+	}
+
+
+	hr = this->vbGround.Initialize(this->device.Get(), v, ARRAYSIZE(v));
+	if (FAILED(hr))
+	{
+		ErrorLogger::Log(hr, "Failed to create vertex buffer.");
+		return false;
+	}
+
+	hr = this->ibGround.Initialize(this->device.Get(), indices, ARRAYSIZE(indices));
+	if (FAILED(hr))
+	{
+		ErrorLogger::Log(hr, "Failed to create indices buffer.");
+		return hr;
+	}
+
+	cbColoredObject.Initialize(device.Get(), deviceContext.Get());
+
+	camera.SetPosition(0, -5.0f, 0);
+	camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 1000.0f);
+
+	return true;
+}
+
+void Graphics::RenderVisualisation()
+{
+	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->RSSetState(this->rasterizerState.Get());
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+
+	UINT offset = 0;
+
+	this->deviceContext->VSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
+	this->deviceContext->PSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
+
+	cbColoredObject.data.worldMatrix = simulation->cube;
+	cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
+	cbColoredObject.data.color = { 0.8f, 0.4f, 0.0f, 1.0f };
+
+	if (!cbColoredObject.ApplyChanges()) return;
+	this->deviceContext->IASetVertexBuffers(0, 1, vbCube.GetAddressOf(), vbCube.StridePtr(), &offset);
+	this->deviceContext->IASetIndexBuffer(ibCube.Get(), DXGI_FORMAT_R32_UINT, 0);
+	this->deviceContext->DrawIndexed(ibCube.BufferSize(), 0, 0);
+
+
+	cbColoredObject.data.worldMatrix = simulation->ground;
+	cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
+	cbColoredObject.data.color = { 0.0f, 0.2f, 0.2f, 1.0f };
+
+	if (!cbColoredObject.ApplyChanges()) return;
+	this->deviceContext->IASetVertexBuffers(0, 1, vbGround.GetAddressOf(), vbGround.StridePtr(), &offset);
+	this->deviceContext->IASetIndexBuffer(ibGround.Get(), DXGI_FORMAT_R32_UINT, 0);
+	this->deviceContext->DrawIndexed(ibGround.BufferSize(), 0, 0);
 }

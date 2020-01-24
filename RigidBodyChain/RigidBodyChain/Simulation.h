@@ -6,6 +6,8 @@
 #include <SimpleMath.h>
 #include "Graphics/Vertex.h"
 #include <random>
+#include "btBulletDynamicsCommon.h"
+#include <stdio.h>
 
 using namespace std;
 using namespace DirectX;
@@ -19,8 +21,20 @@ public:
 	float time;
 	bool paused;
 
+	~Simulation();
+
 	float simulationSpeed;
+	Matrix ground;
+	Matrix cube;
 	
+	btDefaultCollisionConfiguration* collisionConfiguration;
+	btCollisionDispatcher* dispatcher;
+	btBroadphaseInterface* overlappingPairCache;
+	btSequentialImpulseConstraintSolver* solver;
+	btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
+	btDiscreteDynamicsWorld* dynamicsWorld;
+
 
 	mt19937 gen{ std::random_device{}() };
 
@@ -28,5 +42,7 @@ public:
 	void Reset();
 	void Update(float dt);
 	void Update();
+
+	void TestInit();
 };
 

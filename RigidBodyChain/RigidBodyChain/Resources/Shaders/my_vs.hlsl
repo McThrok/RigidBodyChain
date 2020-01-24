@@ -8,11 +8,13 @@ cbuffer perObjectBuffer : register(b0)
 struct VS_INPUT
 {
 	float3 inPos : POSITION;
+	float3 normal : NORMAL;
 };
 
 struct VS_OUTPUT
 {
 	float4 outPosition : SV_POSITION;
+	float3 outNormal : NORMAL;
 	float3 outWorldPos : WORLD_POSITION;
 };
 
@@ -22,6 +24,7 @@ VS_OUTPUT main(VS_INPUT input)
 	float3 pos = input.inPos;
 
 	output.outPosition = mul(wvpMatrix, float4(pos, 1.0f));
+	output.outNormal = mul(worldMatrix, float4(input.normal, 0.0f));
 	output.outWorldPos = mul(worldMatrix, float4(pos, 1.0f));
 
 	return output;
