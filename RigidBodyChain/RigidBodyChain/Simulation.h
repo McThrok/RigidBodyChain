@@ -25,7 +25,7 @@ public:
 
 	float simulationSpeed;
 	Matrix ground;
-	Matrix cube;
+	vector<Matrix> cubes;
 	
 	btDefaultCollisionConfiguration* collisionConfiguration;
 	btCollisionDispatcher* dispatcher;

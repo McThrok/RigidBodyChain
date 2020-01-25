@@ -50,11 +50,11 @@ void Simulation::Update()
 			trans = obj->getWorldTransform();
 		}
 
-		if (j == 1)
+		if (j >0)
 		{
 
 			auto rot = trans.getRotation();
-			cube = Matrix::CreateTranslation(-0.5, -0.5, -0.5) * Matrix::CreateScale(2, 2, 2)
+			cubes[j - 1] = Matrix::CreateTranslation(-0.5, -0.5, -0.5) * Matrix::CreateScale(2, 2, 2)
 				* Matrix::CreateFromQuaternion({ (float)rot.getX(),(float)rot.getY(),(float)rot.getZ(),(float)rot.getW() })
 				* Matrix::CreateTranslation(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 		}
@@ -125,9 +125,10 @@ void Simulation::TestInit()
 		dynamicsWorld->addRigidBody(body);
 	}
 
+	cubes.resize(2);
+	for (int i = 0; i < 2; i++)
 	{
 		//create a dynamic rigidbody
-
 		btCollisionShape* colShape = new btBoxShape(btVector3(1, 1, 1));
 		//btCollisionShape* colShape = new btSphereShape(btScalar(1.));
 		collisionShapes.push_back(colShape);
@@ -145,13 +146,13 @@ void Simulation::TestInit()
 		if (isDynamic)
 			colShape->calculateLocalInertia(mass, localInertia);
 
-		startTransform.setOrigin(btVector3(2, 0, 10));
+		startTransform.setOrigin(btVector3(2 + i * 2.0, 0, 10));
 		startTransform.setRotation(btQuaternion(btVector3(1.0f, 1.0f, 0.0f), btScalar(1.0f)));
 
 		auto rot = startTransform.getRotation();
-		cube = Matrix::CreateTranslation(-0.5, -0.5, -0.5) * Matrix::CreateScale(2, 2, 2)
+		cubes[i] = Matrix::CreateTranslation(-0.5, -0.5, -0.5) * Matrix::CreateScale(2, 2, 2)
 			* Matrix::CreateFromQuaternion({ (float)rot.getX(),(float)rot.getY(),(float)rot.getZ(),(float)rot.getW() })
-			* Matrix::CreateTranslation(2, 0, 10);
+			* Matrix::CreateTranslation(2 + i * 2.0, 0, 10);
 
 		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
 		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
@@ -160,39 +161,6 @@ void Simulation::TestInit()
 
 		dynamicsWorld->addRigidBody(body);
 	}
-
-	/// Do some simulation
-
-	///-----stepsimulation_start-----
-	//for (i = 0; i < 150; i++)
-	//{
-	//	dynamicsWorld->stepSimulation(1.f / 60.f, 10);
-
-	//	//print positions of all objects
-	//	for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
-	//	{
-	//		btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[j];
-	//		btRigidBody* body = btRigidBody::upcast(obj);
-	//		btTransform trans;
-	//		if (body && body->getMotionState())
-	//		{
-	//			body->getMotionState()->getWorldTransform(trans);
-	//		}
-	//		else
-	//		{
-	//			trans = obj->getWorldTransform();
-	//		}
-
-	//		cube = Matrix::CreateScale(2) * Matrix::CreateTranslation(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
-	//		//printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
-	//	}
-	//}
-
-	///-----stepsimulation_end-----
-
-	//cleanup in the reverse order of creation/initialization
-
-
 }
 Simulation::~Simulation()
 {

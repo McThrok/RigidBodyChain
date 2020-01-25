@@ -325,14 +325,17 @@ void Graphics::RenderVisualisation()
 	this->deviceContext->VSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cbColoredObject.GetAddressOf());
 
-	cbColoredObject.data.worldMatrix = simulation->cube;
-	cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
-	cbColoredObject.data.color = { 0.8f, 0.4f, 0.0f, 1.0f };
+	for (int i = 0; i < simulation->cubes.size(); i++)
+	{
+		cbColoredObject.data.worldMatrix = simulation->cubes[i];
+		cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
+		cbColoredObject.data.color = { 0.8f, 0.4f, 0.0f, 1.0f };
 
-	if (!cbColoredObject.ApplyChanges()) return;
-	this->deviceContext->IASetVertexBuffers(0, 1, vbCube.GetAddressOf(), vbCube.StridePtr(), &offset);
-	this->deviceContext->IASetIndexBuffer(ibCube.Get(), DXGI_FORMAT_R32_UINT, 0);
-	this->deviceContext->DrawIndexed(ibCube.BufferSize(), 0, 0);
+		if (!cbColoredObject.ApplyChanges()) return;
+		this->deviceContext->IASetVertexBuffers(0, 1, vbCube.GetAddressOf(), vbCube.StridePtr(), &offset);
+		this->deviceContext->IASetIndexBuffer(ibCube.Get(), DXGI_FORMAT_R32_UINT, 0);
+		this->deviceContext->DrawIndexed(ibCube.BufferSize(), 0, 0);
+	}
 
 
 	cbColoredObject.data.worldMatrix = simulation->ground;
