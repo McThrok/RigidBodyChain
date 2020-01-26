@@ -51,12 +51,14 @@ public:
 	void Update(float dt);
 	void Update();
 	void TestInit();
+	void InitHandling();
 
-	btMultiBody* createFeatherstoneMultiBody_testMultiDof(class btMultiBodyDynamicsWorld* world, int numLinks, const btVector3& basePosition, const btVector3& baseHalfExtents, const btVector3& linkHalfExtents, bool spherical = false, bool floating = false);
+	btMultiBody* createFeatherstoneMultiBody_testMultiDof(class btMultiBodyDynamicsWorld* world, int numLinks, const btVector3& basePosition, const btVector3& baseHalfExtents, const btVector3& linkHalfExtents, bool floating = false);
 	void addColliders_testMultiDof(btMultiBody* pMultiBody, btMultiBodyDynamicsWorld* pWorld, const btVector3& baseHalfExtents, const btVector3& linkHalfExtents);
 	void UpdateMatrices();
 
-	const bool g_floatingBase = false;
+	//const bool g_floatingBase = false;
+	const bool g_floatingBase = true;
 	const float friction = 1.0f;
 
 	btDefaultCollisionConfiguration* m_collisionConfiguration;
@@ -65,4 +67,8 @@ public:
 	btMultiBodyConstraintSolver* m_solver;
 	btMultiBodyDynamicsWorld* m_dynamicsWorld;
 	btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
+
+
+	btMultiBodyPoint2Point* point1;
+	btMultiBodyPoint2Point* point2;
 };

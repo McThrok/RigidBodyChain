@@ -76,6 +76,26 @@ void Graphics::RenderMainPanel() {
 	ImGui::Separator();
 	ImGui::SliderFloat("simulation speed", &simulation->simulationSpeed, 0.1, 10);
 
+	{
+		static Vector3 position = {
+			(float)simulation->point1->getPivotInB().getX(),
+			(float)simulation->point1->getPivotInB().getY(),
+			(float)simulation->point1->getPivotInB().getZ() 
+		};
+		if (ImGui::SliderFloat3("position1", &position.x, -10, 10))
+			simulation->point1->setPivotInB(btVector3(position.x, position.y, position.z));
+	}
+
+	{
+		static Vector3 position = {
+			(float)simulation->point2->getPivotInB().getX(),
+			(float)simulation->point2->getPivotInB().getY(),
+			(float)simulation->point2->getPivotInB().getZ()
+		};
+		if (ImGui::SliderFloat3("position2", &position.x, -10, 10))
+			simulation->point1->setPivotInB(btVector3(position.x, position.y, position.z));
+	}
+
 	ImGui::End();
 }
 
@@ -328,7 +348,7 @@ void Graphics::RenderVisualisation()
 	for (int i = 0; i < simulation->cubes.size(); i++)
 	{
 		cbColoredObject.data.worldMatrix = simulation->cubes[i];
-		cbColoredObject.data.invWorldMatrix =  simulation->cubes[i].Invert();
+		cbColoredObject.data.invWorldMatrix = simulation->cubes[i].Invert();
 		cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
 		cbColoredObject.data.color = { 0.0f, 0.2f, 0.2f, 1.0f };
 
