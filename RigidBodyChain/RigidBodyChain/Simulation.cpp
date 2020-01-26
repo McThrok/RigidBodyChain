@@ -74,7 +74,7 @@ void Simulation::InitHandling()
 		point1 = p2p;
 	}
 	{
-		auto multiCol = m_dynamicsWorld->getMultiBody(0)->getLink(m_dynamicsWorld->getMultiBody(0)->getNumLinks() - 1).m_collider;
+		auto multiCol = m_dynamicsWorld->getMultiBody(0)->getLink(4).m_collider;
 		multiCol->m_multiBody->setCanSleep(false);
 		btVector3 pivotInA = multiCol->m_multiBody->worldPosToLocal(multiCol->m_link, multiCol->getWorldTransform().getOrigin());
 		btVector3 pickPos = multiCol->getWorldTransform().getOrigin();
@@ -149,7 +149,7 @@ void Simulation::TestInit()
 
 	bool damping = true;
 	bool gyro = true;
-	int numLinks = 10;
+	int numLinks = 7;
 	bool multibodyOnly = false;
 	bool canSleep = false;
 	bool selfCollide = true;
@@ -255,7 +255,14 @@ btMultiBody* Simulation::createFeatherstoneMultiBody_testMultiDof(btMultiBodyDyn
 
 	for (int i = 0; i < numLinks; ++i)
 	{
-		pMultiBody->setupSpherical(i, linkMass, linkInertiaDiag, i - 1, btQuaternion(0.f, 0.f, 0.f, 1.f), parentComToCurrentPivot, currentPivotToCurrentCom, true);
+		if (i == 5)
+		{
+			btVector3 currentPivotToCurrentCom( 0, -linkHalfExtents[1], 0);
+			btVector3 parentComToCurrentPivot(0,  0,0 );
+			pMultiBody->setupSpherical(i, linkMass, linkInertiaDiag, 2, btQuaternion(0.f, 0.f, 0.8509035f, 0.525322f), parentComToCurrentPivot, currentPivotToCurrentCom, true);
+		}
+		else
+			pMultiBody->setupSpherical(i, linkMass, linkInertiaDiag, i - 1, btQuaternion(0.f, 0.f, 0.f, 1.f), parentComToCurrentPivot, currentPivotToCurrentCom, true);
 	}
 
 	pMultiBody->finalizeMultiDof();
