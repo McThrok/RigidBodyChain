@@ -5,6 +5,7 @@ struct ColoredObjectBuffer
 {
 	DirectX::XMMATRIX wvpMatrix;
 	DirectX::XMMATRIX worldMatrix;
+	DirectX::XMMATRIX invWorldMatrix;
 	DirectX::XMVECTOR color;
 };
 

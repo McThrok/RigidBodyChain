@@ -328,8 +328,9 @@ void Graphics::RenderVisualisation()
 	for (int i = 0; i < simulation->cubes.size(); i++)
 	{
 		cbColoredObject.data.worldMatrix = simulation->cubes[i];
+		cbColoredObject.data.invWorldMatrix =  simulation->cubes[i].Invert();
 		cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
-		cbColoredObject.data.color = { 0.8f, 0.4f, 0.0f, 1.0f };
+		cbColoredObject.data.color = { 0.0f, 0.2f, 0.2f, 1.0f };
 
 		if (!cbColoredObject.ApplyChanges()) return;
 		this->deviceContext->IASetVertexBuffers(0, 1, vbCube.GetAddressOf(), vbCube.StridePtr(), &offset);
@@ -337,10 +338,10 @@ void Graphics::RenderVisualisation()
 		this->deviceContext->DrawIndexed(ibCube.BufferSize(), 0, 0);
 	}
 
-
 	cbColoredObject.data.worldMatrix = simulation->ground;
+	cbColoredObject.data.invWorldMatrix = simulation->ground.Invert();
 	cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
-	cbColoredObject.data.color = { 0.0f, 0.2f, 0.2f, 1.0f };
+	cbColoredObject.data.color = { 0.8f, 0.4f, 0.0f, 1.0f };
 
 	if (!cbColoredObject.ApplyChanges()) return;
 	this->deviceContext->IASetVertexBuffers(0, 1, vbGround.GetAddressOf(), vbGround.StridePtr(), &offset);
