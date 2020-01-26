@@ -7,35 +7,14 @@ void Simulation::Init()
 	paused = true;
 	delta_time = 1.0 / 60;
 
-	Reset();
-	TestInit();
-	InitHandling();
 
-	auto multiBody = m_dynamicsWorld->getMultiBody(0);
-	cubes.resize(multiBody->getNumLinks());
+	cubes.resize(2);
+	poles.resize(5);
 
+	InitBullet();
+
+	cubes.resize(m_dynamicsWorld->getMultiBody(0)->getNumLinks());
 	UpdateMatrices();
-}
-
-void Simulation::Reset()
-{
-}
-
-void Simulation::UpdateMatrices()
-{
-	auto multiBody = m_dynamicsWorld->getMultiBody(0);
-
-	for (int i = 0; i < multiBody->getNumLinks(); i++)
-	{
-		auto transform = multiBody->getLink(i).m_collider->getWorldTransform();
-		auto r = transform.getRotation();
-		auto p = transform.getOrigin();
-		cubes[i] = Matrix::CreateTranslation(-0.5 * Vector3::One)
-			* Matrix::CreateScale(2)
-			* Matrix::CreateScale(Vector3(0.05, 0.37, 0.1))
-			* Matrix::CreateFromQuaternion({ (float)r.getX(),(float)r.getY(),(float)r.getZ(),(float)r.getW() })
-			* Matrix::CreateTranslation({ (float)p.getX(),(float)p.getY(),(float)p.getZ() });
-	}
 }
 
 void Simulation::Update(float dt)
@@ -60,32 +39,14 @@ void Simulation::Update()
 	UpdateMatrices();
 }
 
-void Simulation::InitHandling()
+void Simulation::InitBullet()
 {
-	{
-		auto multiCol = m_dynamicsWorld->getMultiBody(0)->getLink(0).m_collider;
-		multiCol->m_multiBody->setCanSleep(false);
-
-		btVector3 pivotInA = multiCol->m_multiBody->worldPosToLocal(multiCol->m_link, multiCol->getWorldTransform().getOrigin());
-		btVector3 pickPos = multiCol->getWorldTransform().getOrigin();
-		btMultiBodyPoint2Point* p2p = new btMultiBodyPoint2Point(multiCol->m_multiBody, multiCol->m_link, 0, pivotInA, pickPos);
-		p2p->setMaxAppliedImpulse(2);
-		m_dynamicsWorld->addMultiBodyConstraint(p2p);
-		point1 = p2p;
-	}
-	{
-		auto multiCol = m_dynamicsWorld->getMultiBody(0)->getLink(4).m_collider;
-		multiCol->m_multiBody->setCanSleep(false);
-		btVector3 pivotInA = multiCol->m_multiBody->worldPosToLocal(multiCol->m_link, multiCol->getWorldTransform().getOrigin());
-		btVector3 pickPos = multiCol->getWorldTransform().getOrigin();
-		btMultiBodyPoint2Point* p2p = new btMultiBodyPoint2Point(multiCol->m_multiBody, multiCol->m_link, 0, pivotInA, pickPos);
-		p2p->setMaxAppliedImpulse(2);
-		m_dynamicsWorld->addMultiBodyConstraint(p2p);
-		point2 = p2p;
-	}
+	InitWorld();
+	InitTerrain();
+	InitMultiBody();
+	InitHandlers();
 }
-
-void Simulation::TestInit()
+void Simulation::InitWorld()
 {
 	///collision configuration contains default setup for memory, collision setup
 	m_collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -94,186 +55,99 @@ void Simulation::TestInit()
 	m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
 
 	m_broadphase = new btDbvtBroadphase();
-
-	//int g_constraintSolverType = 0;
-	//btMultiBodyConstraintSolver* sol;
-	//btMLCPSolverInterface* mlcp;
-	//switch (g_constraintSolverType)
-	//{
-	//case 0:
-	//	sol = new btMultiBodyConstraintSolver;
-	//	break;
-	//case 1:
-	//	mlcp = new btSolveProjectedGaussSeidel();
-	//	sol = new btMultiBodyMLCPConstraintSolver(mlcp);
-	//	break;
-	//case 2:
-	//	mlcp = new btDantzigSolver();
-	//	sol = new btMultiBodyMLCPConstraintSolver(mlcp);
-	//	break;
-	//default:
-	//	mlcp = new btLemkeSolver();
-	//	sol = new btMultiBodyMLCPConstraintSolver(mlcp);
-	//	break;
-	//}
-	//btMultiBodyConstraintSolver* sol = new btMultiBodyConstraintSolver;
-	auto	mlcp = new btDantzigSolver();
-	auto	sol = new btMultiBodyMLCPConstraintSolver(mlcp);
-	m_solver = sol;
+	m_solver = new btMultiBodyConstraintSolver;
 
 	//use btMultiBodyDynamicsWorld for Featherstone btMultiBody support
-	auto world = new btMultiBodyDynamicsWorld(m_dispatcher, m_broadphase, sol, m_collisionConfiguration);
-	m_dynamicsWorld = world;
-	//	m_dynamicsWorld->setDebugDrawer(&gDebugDraw);
+	m_dynamicsWorld = new btMultiBodyDynamicsWorld(m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration);
 	m_dynamicsWorld->setGravity(btVector3(0, 0, -10));
 	m_dynamicsWorld->getSolverInfo().m_globalCfm = 1e-3;
-
-	///create a few basic rigid bodies
+}
+void Simulation::InitTerrain()
+{
 	btVector3 groundHalfExtents(50, 50, 50);
 	btCollisionShape* groundShape = new btBoxShape(groundHalfExtents);
-	//groundShape->initializePolyhedralFeatures();
-	//	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0,1,0),50);
 
 	m_collisionShapes.push_back(groundShape);
 
 	btTransform groundTransform;
 	groundTransform.setIdentity();
-	groundTransform.setOrigin(btVector3(0, 0, -50));
-	ground = Matrix::CreateTranslation(-0.5 * Vector3::One)
-		* Matrix::CreateScale(2)
+	groundTransform.setOrigin(btVector3(0, 0, -groundHalfExtents.getZ()));
+	groundMatrix = Matrix::CreateTranslation(-0.5 * Vector3::One) * Matrix::CreateScale(2)
 		* Matrix::CreateScale(groundHalfExtents.getX(), groundHalfExtents.getY(), groundHalfExtents.getZ())
-		* Matrix::CreateTranslation(0, 0, -50);
+		* Matrix::CreateTranslation(0, 0, -groundHalfExtents.getZ());
 
-	/////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////
-
-	bool damping = true;
-	bool gyro = true;
-	int numLinks = 7;
-	bool multibodyOnly = false;
-	bool canSleep = false;
-	bool selfCollide = true;
-	//bool multibodyConstraint = false;
-	btVector3 linkHalfExtents(0.05, 0.37, 0.1);
-	btVector3 baseHalfExtents(0.05, 0.37, 0.1);
-
-	btMultiBody* mbC = createFeatherstoneMultiBody_testMultiDof(world, numLinks, btVector3(-0.4f, 0.f, 3.f), linkHalfExtents, baseHalfExtents, g_floatingBase);
-
-	mbC->setCanSleep(canSleep);
-	mbC->setHasSelfCollision(selfCollide);
-	mbC->setUseGyroTerm(gyro);
-	//
-	if (!damping)
-	{
-		mbC->setLinearDamping(0.f);
-		mbC->setAngularDamping(0.f);
-	}
-	else
-	{
-		mbC->setLinearDamping(0.1f);
-		mbC->setAngularDamping(0.9f);
-	}
-	//
-	m_dynamicsWorld->setGravity(btVector3(0, 0, -9.81));
-	//m_dynamicsWorld->getSolverInfo().m_numIterations = 100;
-	//////////////////////////////////////////////
-	if (numLinks > 0)
-	{
-		btScalar q0 = 45.f * SIMD_PI / 180.f;
-		btQuaternion quat0(btVector3(1, 1, 0).normalized(), q0);
-		quat0.normalize();
-		mbC->setJointPosMultiDof(0, quat0);
-	}
-	///
-	addColliders_testMultiDof(mbC, world, baseHalfExtents, linkHalfExtents);
-
-	/////////////////////////////////////////////////////////////////
-	btScalar groundHeight = -50;
-	if (!multibodyOnly)
-	{
-		btScalar mass(0.);
-
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isDynamic = (mass != 0.f);
-
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic)
-			groundShape->calculateLocalInertia(mass, localInertia);
-
-		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-		groundTransform.setIdentity();
-		groundTransform.setOrigin(btVector3(0, 0, groundHeight));
-		btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-		btRigidBody* body = new btRigidBody(rbInfo);
-
-		//add the body to the dynamics world
-		m_dynamicsWorld->addRigidBody(body, 1, 1 + 2);
-	}
+	//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
+	btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0, myMotionState, groundShape, { 0, 0, 0 });
+	m_dynamicsWorld->addRigidBody(new btRigidBody(rbInfo), 1, 1 + 2);
 }
 
-btMultiBody* Simulation::createFeatherstoneMultiBody_testMultiDof(btMultiBodyDynamicsWorld* pWorld, int numLinks, const btVector3& basePosition, const btVector3& baseHalfExtents, const btVector3& linkHalfExtents, bool floating)
+void Simulation::InitMultiBody()
+{
+	int numLinks = cubes.size() + poles.size();
+
+	btMultiBody* multiBody = InitEmptyMultiBody(numLinks);
+	InitMultiBodyLinks(multiBody);
+
+	multiBody->finalizeMultiDof();
+	m_dynamicsWorld->addMultiBody(multiBody);
+
+	InitMultiBodyLinksColliders(multiBody);
+}
+btMultiBody* Simulation::InitEmptyMultiBody(int numLinks)
 {
 	//init the base
 	btVector3 baseInertiaDiag(0.f, 0.f, 0.f);
 	float baseMass = 1.f;
-
-	if (baseMass)
-	{
-		btCollisionShape* pTempBox = new btBoxShape(btVector3(baseHalfExtents[0], baseHalfExtents[1], baseHalfExtents[2]));
-		pTempBox->calculateLocalInertia(baseMass, baseInertiaDiag);
-		delete pTempBox;
-	}
-
-	bool canSleep = false;
-
-	btMultiBody* pMultiBody = new btMultiBody(numLinks, baseMass, baseInertiaDiag, !floating, canSleep);
-
-	btQuaternion baseOriQuat(0.f, 0.f, 0.f, 1.f);
-	pMultiBody->setBasePos(basePosition);
-	pMultiBody->setWorldToBaseRot(baseOriQuat);
-
-	//init the links
-	btVector3 hingeJointAxis(1, 0, 0);
-	float linkMass = 1.f;
-	btVector3 linkInertiaDiag(0.f, 0.f, 0.f);
-
-	btCollisionShape* pTempBox = new btBoxShape(btVector3(linkHalfExtents[0], linkHalfExtents[1], linkHalfExtents[2]));
-	pTempBox->calculateLocalInertia(linkMass, linkInertiaDiag);
+	btCollisionShape* pTempBox = new btBoxShape(halfSize);//?
+	pTempBox->calculateLocalInertia(baseMass, baseInertiaDiag);
 	delete pTempBox;
 
+	btMultiBody* multiBody = new btMultiBody(numLinks, baseMass, baseInertiaDiag, false, false);
+
+	multiBody->setCanSleep(false);
+	multiBody->setHasSelfCollision(true);
+	multiBody->setUseGyroTerm(true);
+	multiBody->setLinearDamping(0.1f);
+	multiBody->setAngularDamping(0.9f);
+
+	btVector3 basePosition(0.f, 0.f, 5.f);
+	multiBody->setBasePos(basePosition);
+	multiBody->setWorldToBaseRot(btQuaternion::getIdentity());
+
+	return multiBody;
+
+}
+void Simulation::InitMultiBodyLinks(btMultiBody* multiBody)
+{
+	//init the links
+	float linkMass = 1.f;
+	btVector3 linkInertiaDiag(0.f, 0.f, 0.f);
+	btCollisionShape* pTempBoxLink = new btBoxShape(halfSize);
+	pTempBoxLink->calculateLocalInertia(linkMass, linkInertiaDiag);
+	delete pTempBoxLink;
+
 	//y-axis assumed up
-	btVector3 parentComToCurrentCom(0, -linkHalfExtents[1] * 2.f, 0);                      //par body's COM to cur body's COM offset
-	btVector3 currentPivotToCurrentCom(0, -linkHalfExtents[1], 0);                         //cur body's COM to cur body's PIV offset
-	btVector3 parentComToCurrentPivot = parentComToCurrentCom - currentPivotToCurrentCom;  //par body's COM to cur body's PIV offset
+	btVector3 parentComToCurrentCom(0, -halfSize[1] * 2.f, 0);
+	btVector3 currentPivotToCurrentCom(0, -halfSize[1], 0);
+	btVector3 parentComToCurrentPivot = parentComToCurrentCom - currentPivotToCurrentCom;
 
-	//////
-	btScalar q0 = 0.f * SIMD_PI / 180.f;
-	btQuaternion quat0(btVector3(0, 1, 0).normalized(), q0);
-	quat0.normalize();
-	/////
-
+	int numLinks = multiBody->getNumLinks();
 	for (int i = 0; i < numLinks; ++i)
 	{
 		if (i == 5)
 		{
-			btVector3 currentPivotToCurrentCom( 0, -linkHalfExtents[1], 0);
-			btVector3 parentComToCurrentPivot(0,  0,0 );
-			pMultiBody->setupSpherical(i, linkMass, linkInertiaDiag, 2, btQuaternion(0.f, 0.f, 0.8509035f, 0.525322f), parentComToCurrentPivot, currentPivotToCurrentCom, true);
+			btVector3 currentPivotToCurrentCom(0, -halfSize[1], 0);
+			btVector3 parentComToCurrentPivot(0, 0, 0);
+			multiBody->setupSpherical(i, linkMass, linkInertiaDiag, 2, btQuaternion(0.f, 0.f, 0.8509035f, 0.525322f), parentComToCurrentPivot, currentPivotToCurrentCom, true);
 		}
 		else
-			pMultiBody->setupSpherical(i, linkMass, linkInertiaDiag, i - 1, btQuaternion(0.f, 0.f, 0.f, 1.f), parentComToCurrentPivot, currentPivotToCurrentCom, true);
+		{
+			multiBody->setupSpherical(i, linkMass, linkInertiaDiag, i - 1, btQuaternion(0.f, 0.f, 0.f, 1.f), parentComToCurrentPivot, currentPivotToCurrentCom, true);
+		}
 	}
-
-	pMultiBody->finalizeMultiDof();
-
-	///
-	pWorld->addMultiBody(pMultiBody);
-	///
-	return pMultiBody;
 }
-
-void Simulation::addColliders_testMultiDof(btMultiBody* pMultiBody, btMultiBodyDynamicsWorld* pWorld, const btVector3& baseHalfExtents, const btVector3& linkHalfExtents)
+void Simulation::InitMultiBodyLinksColliders(btMultiBody* pMultiBody)
 {
 	btAlignedObjectArray<btQuaternion> world_to_local;
 	world_to_local.resize(pMultiBody->getNumLinks() + 1);
@@ -284,12 +158,11 @@ void Simulation::addColliders_testMultiDof(btMultiBody* pMultiBody, btMultiBodyD
 	local_origin[0] = pMultiBody->getBasePos();
 
 	{
-		//	float pos[4]={local_origin[0].x(),local_origin[0].y(),local_origin[0].z(),1};
 		btScalar quat[4] = { -world_to_local[0].x(), -world_to_local[0].y(), -world_to_local[0].z(), world_to_local[0].w() };
 
 		if (1)
 		{
-			btCollisionShape* box = new btBoxShape(baseHalfExtents);
+			btCollisionShape* box = new btBoxShape(halfSize);
 			btMultiBodyLinkCollider* col = new btMultiBodyLinkCollider(pMultiBody, -1);
 			col->setCollisionShape(box);
 
@@ -299,7 +172,7 @@ void Simulation::addColliders_testMultiDof(btMultiBody* pMultiBody, btMultiBodyD
 			tr.setRotation(btQuaternion(quat[0], quat[1], quat[2], quat[3]));
 			col->setWorldTransform(tr);
 
-			pWorld->addCollisionObject(col, 2, 1 + 2);
+			m_dynamicsWorld->addCollisionObject(col, 2, 1 + 2);
 
 			col->setFriction(friction);
 			pMultiBody->setBaseCollider(col);
@@ -316,11 +189,10 @@ void Simulation::addColliders_testMultiDof(btMultiBody* pMultiBody, btMultiBodyD
 	for (int i = 0; i < pMultiBody->getNumLinks(); ++i)
 	{
 		btVector3 posr = local_origin[i + 1];
-		//	float pos[4]={posr.x(),posr.y(),posr.z(),1};
 
 		btScalar quat[4] = { -world_to_local[i + 1].x(), -world_to_local[i + 1].y(), -world_to_local[i + 1].z(), world_to_local[i + 1].w() };
 
-		btCollisionShape* box = new btBoxShape(linkHalfExtents);
+		btCollisionShape* box = new btBoxShape(halfSize);
 		btMultiBodyLinkCollider* col = new btMultiBodyLinkCollider(pMultiBody, i);
 
 		col->setCollisionShape(box);
@@ -330,9 +202,43 @@ void Simulation::addColliders_testMultiDof(btMultiBody* pMultiBody, btMultiBodyD
 		tr.setRotation(btQuaternion(quat[0], quat[1], quat[2], quat[3]));
 		col->setWorldTransform(tr);
 		col->setFriction(friction);
-		pWorld->addCollisionObject(col, 2, 1 + 2);
+		m_dynamicsWorld->addCollisionObject(col, 2, 1 + 2);
 
 		pMultiBody->getLink(i).m_collider = col;
+	}
+}
+
+void Simulation::InitHandlers()
+{
+	auto boxEnd = halfSize.y();
+	handle1 = AddHandle(0, { 0,boxEnd,0 });
+	handle2 = AddHandle(4, { 0,-boxEnd,0 });
+}
+btMultiBodyPoint2Point* Simulation::AddHandle(int idx, btVector3 pivot)
+{
+	auto multiCol = m_dynamicsWorld->getMultiBody(0)->getLink(idx).m_collider;
+	multiCol->m_multiBody->setCanSleep(false);//?
+
+	auto globalPos = multiCol->getWorldTransform().getOrigin();
+	btMultiBodyPoint2Point* p2p = new btMultiBodyPoint2Point(multiCol->m_multiBody, multiCol->m_link, 0, pivot, globalPos);
+	p2p->setMaxAppliedImpulse(2);//?
+	m_dynamicsWorld->addMultiBodyConstraint(p2p);
+
+	return p2p;
+}
+void Simulation::UpdateMatrices()
+{
+	auto multiBody = m_dynamicsWorld->getMultiBody(0);
+
+	for (int i = 0; i < multiBody->getNumLinks(); i++)
+	{
+		auto transform = multiBody->getLink(i).m_collider->getWorldTransform();
+		auto r = transform.getRotation();
+		auto p = transform.getOrigin();
+		cubes[i] = Matrix::CreateTranslation(-0.5 * Vector3::One) * Matrix::CreateScale(2)
+			* Matrix::CreateScale(Vector3((float)halfSize.x(), (float)halfSize.y(), (float)halfSize.z()))
+			* Matrix::CreateFromQuaternion({ (float)r.getX(),(float)r.getY(),(float)r.getZ(),(float)r.getW() })
+			* Matrix::CreateTranslation({ (float)p.getX(),(float)p.getY(),(float)p.getZ() });
 	}
 }
 

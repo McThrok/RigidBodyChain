@@ -43,22 +43,27 @@ public:
 	~Simulation();
 
 	float simulationSpeed;
-	Matrix ground;
+	Matrix groundMatrix;
 	vector<Matrix> cubes;
+	vector<Matrix> poles;
 
-	void Init();
-	void Reset();
 	void Update(float dt);
 	void Update();
-	void TestInit();
-	void InitHandling();
 
-	btMultiBody* createFeatherstoneMultiBody_testMultiDof(class btMultiBodyDynamicsWorld* world, int numLinks, const btVector3& basePosition, const btVector3& baseHalfExtents, const btVector3& linkHalfExtents, bool floating = false);
-	void addColliders_testMultiDof(btMultiBody* pMultiBody, btMultiBodyDynamicsWorld* pWorld, const btVector3& baseHalfExtents, const btVector3& linkHalfExtents);
+	void Init();
+	void InitBullet();
+	void InitWorld();
+	void InitTerrain();
+
+	void InitMultiBody();
+	btMultiBody* InitEmptyMultiBody(int numLinks);
+	void InitMultiBodyLinks(btMultiBody* mb);
+	void InitMultiBodyLinksColliders(btMultiBody* mb);
+
+	void InitHandlers();
+	btMultiBodyPoint2Point* AddHandle(int idx, btVector3 pivot);
 	void UpdateMatrices();
 
-	//const bool g_floatingBase = false;
-	const bool g_floatingBase = true;
 	const float friction = 1.0f;
 
 	btDefaultCollisionConfiguration* m_collisionConfiguration;
@@ -68,7 +73,7 @@ public:
 	btMultiBodyDynamicsWorld* m_dynamicsWorld;
 	btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
 
-
-	btMultiBodyPoint2Point* point1;
-	btMultiBodyPoint2Point* point2;
+	btMultiBodyPoint2Point* handle1;
+	btMultiBodyPoint2Point* handle2;
+	const btVector3 halfSize = { 0.1, 0.5, 0.1 };
 };

@@ -50,8 +50,8 @@ void Graphics::RendeGui() {
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 void Graphics::RenderMainPanel() {
-	ImGui::SetNextWindowSize(ImVec2(400, 600), ImGuiCond_Once);
-	ImGui::SetNextWindowPos(ImVec2(10, 30), ImGuiCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(1380, 130), ImGuiCond_Once);
+	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
 	if (!ImGui::Begin("Main Panel"))
 	{
 		ImGui::End();
@@ -67,33 +67,27 @@ void Graphics::RenderMainPanel() {
 			simulation->paused = true;
 	}
 
-	ImGui::SameLine();
-	if (ImGui::Button("Reset")) {
-		simulation->Reset();
-	}
-
-
 	ImGui::Separator();
 	ImGui::SliderFloat("simulation speed", &simulation->simulationSpeed, 0.1, 10);
 
 	{
 		static Vector3 position = {
-			(float)simulation->point1->getPivotInB().getX(),
-			(float)simulation->point1->getPivotInB().getY(),
-			(float)simulation->point1->getPivotInB().getZ() 
+			(float)simulation->handle1->getPivotInB().getX(),
+			(float)simulation->handle1->getPivotInB().getY(),
+			(float)simulation->handle1->getPivotInB().getZ() 
 		};
-		if (ImGui::SliderFloat3("position1", &position.x, -10, 10))
-			simulation->point1->setPivotInB(btVector3(position.x, position.y, position.z));
+		if (ImGui::SliderFloat3("position1", &position.x, -5, 5))
+			simulation->handle1->setPivotInB(btVector3(position.x, position.y, position.z));
 	}
 
 	{
 		static Vector3 position = {
-			(float)simulation->point2->getPivotInB().getX(),
-			(float)simulation->point2->getPivotInB().getY(),
-			(float)simulation->point2->getPivotInB().getZ()
+			(float)simulation->handle2->getPivotInB().getX(),
+			(float)simulation->handle2->getPivotInB().getY(),
+			(float)simulation->handle2->getPivotInB().getZ()
 		};
-		if (ImGui::SliderFloat3("position2", &position.x, -10, 10))
-			simulation->point1->setPivotInB(btVector3(position.x, position.y, position.z));
+		if (ImGui::SliderFloat3("position2", &position.x, -5, 5))
+			simulation->handle2->setPivotInB(btVector3(position.x, position.y, position.z));
 	}
 
 	ImGui::End();
@@ -325,7 +319,7 @@ bool Graphics::InitializeScene()
 
 	cbColoredObject.Initialize(device.Get(), deviceContext.Get());
 
-	camera.SetPosition(0, -5.0f, 0);
+	camera.SetPosition(0, -7.0f, 7);
 	camera.SetProjectionValues(90.0f, static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 1000.0f);
 
 	return true;
@@ -358,8 +352,8 @@ void Graphics::RenderVisualisation()
 		this->deviceContext->DrawIndexed(ibCube.BufferSize(), 0, 0);
 	}
 
-	cbColoredObject.data.worldMatrix = simulation->ground;
-	cbColoredObject.data.invWorldMatrix = simulation->ground.Invert();
+	cbColoredObject.data.worldMatrix = simulation->groundMatrix;
+	cbColoredObject.data.invWorldMatrix = simulation->groundMatrix.Invert();
 	cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
 	cbColoredObject.data.color = { 0.8f, 0.4f, 0.0f, 1.0f };
 
