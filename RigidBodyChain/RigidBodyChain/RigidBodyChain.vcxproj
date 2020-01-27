@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)RigidBodyChain\Includes;C:\Users\wojte\OneDrive\Pulpit\bullet3-2.89\bullet3-2.89\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)RigidBodyChain\Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)RigidBodyChain\Libs\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -95,18 +95,17 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;BT_USE_DOUBLE_PRECISION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>BulletCollision.lib;BulletDynamics.lib;LinearMath.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)Dlls\*.dll" "$(OutDir)"
 copy "$(OutDir)*.cso" "$(ProjectDir)"
-md "$(OutDir)Resources\Data"
-copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -121,13 +120,11 @@ copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BulletCollision.lib;BulletDynamics.lib;LinearMath.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)Dlls\*.dll" "$(OutDir)"
 copy "$(OutDir)*.cso" "$(ProjectDir)"
-md "$(OutDir)Resources\Data"
-copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -137,7 +134,7 @@ copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;BT_USE_DOUBLE_PRECISION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -145,12 +142,11 @@ copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>BulletCollision.lib;BulletDynamics.lib;LinearMath.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)Dlls\*.dll" "$(OutDir)"
 copy "$(OutDir)*.cso" "$(ProjectDir)"
-md "$(OutDir)Resources\Data"
-copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -160,7 +156,7 @@ copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;BT_USE_DOUBLE_PRECISION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -168,12 +164,11 @@ copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>BulletCollision.lib;BulletDynamics.lib;LinearMath.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)Dlls\*.dll" "$(OutDir)"
 copy "$(OutDir)*.cso" "$(ProjectDir)"
-md "$(OutDir)Resources\Data"
-copy "$(ProjectDir)Resources\Data\*" "$(OutDir)Resources\Data"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
