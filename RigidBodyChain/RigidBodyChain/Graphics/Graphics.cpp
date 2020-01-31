@@ -50,7 +50,7 @@ void Graphics::RendeGui() {
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 void Graphics::RenderMainPanel() {
-	ImGui::SetNextWindowSize(ImVec2(1380, 130), ImGuiCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(1380, 200), ImGuiCond_Once);
 	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
 	if (!ImGui::Begin("Main Panel"))
 	{
@@ -76,7 +76,7 @@ void Graphics::RenderMainPanel() {
 			(float)simulation->handle1->getPivotInB().getY(),
 			(float)simulation->handle1->getPivotInB().getZ() 
 		};
-		if (ImGui::SliderFloat3("position1", &position.x, -5, 5))
+		if (ImGui::DragFloat3("position1", &position.x, 0.01f))
 			simulation->handle1->setPivotInB(btVector3(position.x, position.y, position.z));
 	}
 
@@ -86,8 +86,28 @@ void Graphics::RenderMainPanel() {
 			(float)simulation->handle2->getPivotInB().getY(),
 			(float)simulation->handle2->getPivotInB().getZ()
 		};
-		if (ImGui::SliderFloat3("position2", &position.x, -5, 5))
+		if (ImGui::DragFloat3("position2", &position.x, 0.01f))
 			simulation->handle2->setPivotInB(btVector3(position.x, position.y, position.z));
+	}
+
+	{
+		static Vector3 position = {
+			(float)simulation->handle3->getPivotInB().getX(),
+			(float)simulation->handle3->getPivotInB().getY(),
+			(float)simulation->handle3->getPivotInB().getZ()
+		};
+		if (ImGui::DragFloat3("position3", &position.x, 0.01f))
+			simulation->handle3->setPivotInB(btVector3(position.x, position.y, position.z));
+	}
+
+	{
+		static Vector3 position = {
+			(float)simulation->handle4->getPivotInB().getX(),
+			(float)simulation->handle4->getPivotInB().getY(),
+			(float)simulation->handle4->getPivotInB().getZ()
+		};
+		if (ImGui::DragFloat3("position4", &position.x,0.01f))
+			simulation->handle4->setPivotInB(btVector3(position.x, position.y, position.z));
 	}
 
 	ImGui::End();
@@ -343,6 +363,19 @@ void Graphics::RenderVisualisation()
 	{
 		cbColoredObject.data.worldMatrix = simulation->cubes[i];
 		cbColoredObject.data.invWorldMatrix = simulation->cubes[i].Invert();
+		cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
+		cbColoredObject.data.color = { 0.0f, 0.2f, 0.2f, 1.0f };
+
+		if (!cbColoredObject.ApplyChanges()) return;
+		this->deviceContext->IASetVertexBuffers(0, 1, vbCube.GetAddressOf(), vbCube.StridePtr(), &offset);
+		this->deviceContext->IASetIndexBuffer(ibCube.Get(), DXGI_FORMAT_R32_UINT, 0);
+		this->deviceContext->DrawIndexed(ibCube.BufferSize(), 0, 0);
+	}
+
+	for (int i = 0; i < simulation->cubes2.size(); i++)
+	{
+		cbColoredObject.data.worldMatrix = simulation->cubes2[i];
+		cbColoredObject.data.invWorldMatrix = simulation->cubes2[i].Invert();
 		cbColoredObject.data.wvpMatrix = cbColoredObject.data.worldMatrix * camera.GetViewMatrix() * camera.GetProjectionMatrix();
 		cbColoredObject.data.color = { 0.0f, 0.2f, 0.2f, 1.0f };
 

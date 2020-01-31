@@ -9,7 +9,6 @@
 #include "btBulletDynamicsCommon.h"
 #include <stdio.h>
 
-
 #include "BulletDynamics/MLCPSolvers/btDantzigSolver.h"
 #include "BulletDynamics/MLCPSolvers/btLemkeSolver.h"
 #include "BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h"
@@ -45,7 +44,7 @@ public:
 	float simulationSpeed;
 	Matrix groundMatrix;
 	vector<Matrix> cubes;
-	vector<Matrix> poles;
+	vector<Matrix> cubes2;
 
 	void Update(float dt);
 	void Update();
@@ -76,4 +75,15 @@ public:
 	btMultiBodyPoint2Point* handle1;
 	btMultiBodyPoint2Point* handle2;
 	const btVector3 halfSize = { 0.1, 0.5, 0.1 };
+
+
+	btMultiBodyPoint2Point* handle3;
+	btMultiBodyPoint2Point* handle4;
+
+	void InitMultiBody2();
+	void InitMultiBodyLinks2(btMultiBody* mb);
+
+	void InitHandlers2();
+	btMultiBodyPoint2Point* AddHandle2(int idx, btVector3 pivot);
+	void UpdateMatrices2();
 };
